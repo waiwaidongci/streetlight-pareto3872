@@ -8,7 +8,8 @@ from itertools import accumulate
 from .spec import SPEC
 
 
-_REGISTER, _INCIDENT = SPEC["fields"][0]["options"]
+_REGISTER, _INCIDENT = SPEC["fields"][0]["options"][:2]
+_MEASURE, _QUOTA = SPEC["backtest_record_types"]
 _DISPATCH, _OBSERVE, _ARCHIVE = SPEC["modes"]
 _SITE_COLUMNS = (
     ("site_id", "灯组编号"), ("district", "片区"), ("site_name", "台账点位"),
@@ -77,6 +78,9 @@ def validate_rows(rows):
             )
             incident_ids.add(incident_id)
             incidents.append(record)
+        elif kind in (_MEASURE, _QUOTA):
+            # 回测专用记录（现场实测、夜巡名额）不参与集中度测算。
+            continue
         else:
             raise ValueError(f"第 {index} 条记录的记录类型须为「{_REGISTER}」或「{_INCIDENT}」。")
         records.append(record)

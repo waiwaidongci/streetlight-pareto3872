@@ -50,3 +50,32 @@ class Delivery(Base):
     state: Mapped[str] = mapped_column(String(20))
     detail: Mapped[str] = mapped_column(String(500))
     created_at: Mapped[datetime] = mapped_column(default=now)
+
+
+class Backtest(Base):
+    """门槛回测任务：冻结输入快照、逐批评估候选并只发布一套门槛。"""
+
+    __tablename__ = 'backtests'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    dataset_id: Mapped[int] = mapped_column(ForeignKey('datasets.id'))
+    name: Mapped[str] = mapped_column(String(120))
+    status: Mapped[str] = mapped_column(String(20), default=Status.QUEUED, index=True)
+    params: Mapped[dict] = mapped_column(JSON)
+    # 开算时冻结的工单、实测、名额快照，中断恢复沿用，不重读外部输入。
+    snapshot: Mapped[dict | None] = mapped_column(JSON)
+    candidates: Mapped[list | None] = mapped_column(JSON)
+    # 已评估候选签名 -> 可 JSON 序列化的评估结果，已评候选不重算。
+    evaluated: Mapped[dict] = mapped_column(JSON, default=dict)
+    best: Mapped[dict | None] = mapped_column(JSON)
+    next_index: Mapped[int] = mapped_column(default=0)
+    candidate_total: Mapped[int] = mapped_column(default=0)
+    result: Mapped[dict | None] = mapped_column(JSON)
+    export_file: Mapped[str | None] = mapped_column(String(100))
+    error: Mapped[str | None] = mapped_column(String(500))
+    attempt: Mapped[int] = mapped_column(default=0)
+    lease_until: Mapped[datetime | None]
+    published_at: Mapped[datetime | None]
+    author: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(default=now)
+    finished_at: Mapped[datetime | None]

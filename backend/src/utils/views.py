@@ -27,3 +27,16 @@ def schedule(item):
 def delivery(item):
     return {'id': item.id, 'run_id': item.run_id, 'recipient': item.recipient,
             'state': item.state, 'detail': item.detail, 'created_at': iso(item.created_at)}
+
+
+def backtest(item, detail=False):
+    evaluated_total = len(item.evaluated) if item.evaluated else 0
+    item_view = {'id': item.id, 'dataset_id': item.dataset_id, 'name': item.name, 'status': item.status,
+                 'author': item.author, 'created_at': iso(item.created_at),
+                 'finished_at': iso(item.finished_at), 'published_at': iso(item.published_at),
+                 'has_export': bool(item.export_file), 'error': item.error,
+                 'candidate_total': item.candidate_total, 'evaluated_total': evaluated_total,
+                 'progress_pct': round(100 * evaluated_total / item.candidate_total, 2) if item.candidate_total else 0}
+    if detail:
+        item_view.update(params=item.params, result=item.result)
+    return item_view
